@@ -1,4 +1,4 @@
-package ru.inno.task1;
+package ru.inno.task1.part1;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;

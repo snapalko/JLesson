@@ -1,4 +1,4 @@
-package ru.inno.task1;
+package ru.inno.task1.part1;
 
 public class Main {
     public static void main(String[] args) {
