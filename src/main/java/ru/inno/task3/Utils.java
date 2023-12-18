@@ -12,13 +12,13 @@ public class Utils {
                 new MyWrapper<>(obj));
     }
 
-    public static Object getDeepCloning(Object obj) throws IOException, ClassNotFoundException {
+    /*public static Object getDeepCloning(Object obj) throws IOException, ClassNotFoundException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(baos);
         oos.writeObject(obj);
         ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
         ObjectInputStream ois = new ObjectInputStream(bais);
         return ois.readObject();
-    }
+    }*/
 
 }
