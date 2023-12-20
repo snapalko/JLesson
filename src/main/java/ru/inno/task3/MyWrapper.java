@@ -1,21 +1,18 @@
 package ru.inno.task3;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MyWrapper<T> implements InvocationHandler {
     T obj;
+    private final Object lock = new Object();
+    //
     private final ConcurrentHashMap<PairedKey, Object> cacheData = new ConcurrentHashMap<>();
-    //private Map<PairedKey, Object> cacheData = new HashMap<>();
     long cacheTimeLife;
-//    private final Object lock = new Object();
 
     public MyWrapper(T obj) {
         this.obj = obj;
@@ -24,65 +21,43 @@ public class MyWrapper<T> implements InvocationHandler {
     public String viewCacheData() {
         StringBuilder sb = new StringBuilder();
         if (cacheData.isEmpty()) return "{}";
-        for (PairedKey pk : cacheData.keySet()) {
-            sb.append("{")
-                    .append(pk.getMethod())
-                    .append(" ")
-                    .append(pk.getTimeLive())
-                    .append(" ")
-                    .append(pk.getStrTime(pk.getTimeLive()))
-                    .append(" ")
-                    .append(cacheData.get(pk))
-                    .append("}\n");
-        }
+        cacheData.keySet().stream().sorted(PairedKey::compare).forEach(pk -> sb.append("{")
+                .append(pk.getMethod())
+                .append(" ")
+                .append(pk.getTimeLive())
+                .append(" ")
+                .append(pk.getStrTime(pk.getTimeLive()))
+                .append(" ")
+                .append(cacheData.get(pk))
+                .append("}\n"));
         return sb.toString();
     }
 
-//    public Map<PairedKey, Object> mapCopy(Map<PairedKey, Object> original) throws IOException, ClassNotFoundException {
-//        Map<PairedKey, Object> result = new HashMap<>();
-//
-//        for (Map.Entry<PairedKey, Object> entry : original.entrySet()) {
-//            PairedKey originalPairedKey = entry.getKey();
-//            PairedKey resultPairedKey = new PairedKey(originalPairedKey.getMethod());
-//            resultPairedKey.setTimeLife(originalPairedKey.getTimeLive());
-//            Object originalObj = entry.getValue();
-//            Object resultObj = Utils.getDeepCloning(originalObj);
-//
-//            result.put(resultPairedKey, resultObj);
-//        }
-//        return result;
-//    }
-
-    public void clearCache() /*throws IOException, ClassNotFoundException*/ {
-
-        long currentTimeMillis = System.currentTimeMillis();
-//        System.out.println("before currentTimeMillis="+getStrTime(currentTimeMillis)+"\n" + viewCacheData());
-//        Map<PairedKey, Object> tmpData = mapCopy(cacheData); // Копируем cacheData во временную мапу
-
-//        for (PairedKey pk : tmpData.keySet()) {
-        for (PairedKey pk : cacheData.keySet()) {
-            /*System.out.println("currentTimeMillis="
-                    + getStrTime(currentTimeMillis)
-                    + ", pk.timeLife=" + getStrTime(pk.timeLife));*/
-
-            if (!pk.isLive(currentTimeMillis)) {
-//                System.out.println(" - чистим кэш: " + cacheData.get(pk));
-//                tmpData.remove(pk);
-                cacheData.remove(pk);
-//                System.out.println("after \n" + viewCacheData());
-            }
-        }
-//        System.out.println("after  " + viewCacheData());
-//        synchronized (lock) {
-//            cacheData = mapCopy(tmpData);
-//        }
+    public String getStrTime(long time) {
+        SimpleDateFormat formatter = new SimpleDateFormat("HH:mm:ss-SS");
+        Date date = new Date(time);
+        return formatter.format(date);
     }
 
-    PairedKey getLastKeyFromCache(Method method) {
-        /*if (method == null) {
-            System.out.println("method == null");
-            return null;
-        }*/
+    public void clearCache() throws InterruptedException /*throws IOException, ClassNotFoundException*/ {
+
+        long currentTimeMillis = System.currentTimeMillis();
+        Object object;
+        for (PairedKey pk : cacheData.keySet()) {
+
+            if (!pk.isLive(currentTimeMillis)) {
+                // Если истекло время жизни строки в кэше
+                synchronized (lock) {
+                    object = cacheData.remove(pk);
+                }
+                System.out.println(" - чистим кэш: " + pk + " " + object);
+            }
+            Thread.sleep(1000L);
+        }
+//        System.out.println("after\n" + viewCacheData());
+    }
+
+    public PairedKey getLastKeyFromCache(Method method) {
         try {
             return cacheData.keySet().stream()
                     .filter(s -> s.getMethod().equals(method))
@@ -95,21 +70,19 @@ public class MyWrapper<T> implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         Thread thread = new Thread(() -> {
-//            try {
+            try {
                 this.clearCache();
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            } catch (ClassNotFoundException e) {
-//                throw new RuntimeException(e);
-//            }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         });
         thread.start();
+
         Object result;
         Method myMethod = obj.getClass().getDeclaredMethod(method.getName(), method.getParameterTypes());
-//        clearCache();
 
         if (myMethod.isAnnotationPresent(Mutator.class)) {
-            Utils.isValueFromCache = false; //            cacheData.clear();
+            Utils.isValueFromCache = false;
             result = myMethod.invoke(obj, args);
             return result;
         }
@@ -120,28 +93,39 @@ public class MyWrapper<T> implements InvocationHandler {
                 cacheTimeLife = myMethod.getAnnotation(Cache.class).value();
                 // Находим последнюю запись в парном ключе по этому методу.
                 PairedKey pairedKey = getLastKeyFromCache(myMethod);
-
+                Object state;
                 if (pairedKey != null) {
-                    System.out.println("Берём значение из кэша: "+pairedKey.toString());
+//                    System.out.println(viewCacheData());
                     // Берём значение из кэша
-                    Object object = cacheData.get(pairedKey);
-                    object = cacheData.remove(pairedKey);
-                    // Меняем время жизни записи в кэше на текущее время
-                    pairedKey.setTimeLife(System.currentTimeMillis() + cacheTimeLife);
-                    // и записывает это в кэш
-                    cacheData.put(pairedKey, object);
+                    synchronized (lock) {
+                        state = cacheData.get(pairedKey);
+
+                        System.out.println("Берём значение из кэша: " + pairedKey + " " + state);
+                        state = cacheData.remove(pairedKey);
+
+                        // Меняем время жизни записи в кэше на текущее время
+                        long currentTimeLive = System.currentTimeMillis() + cacheTimeLife;
+                        pairedKey.setTimeLife(currentTimeLive);
+
+                        // и записывает это в кэш
+                        cacheData.put(pairedKey, state);
+                    }
                     Utils.isValueFromCache = true;
-                    result = object;
+                    result = state;
                 } else {
                     // Не нашлось в кэше записи с вызовом этого метода, вызываем сам метод
                     result = myMethod.invoke(obj, args);
-                    cacheData.put(new PairedKey(myMethod, cacheTimeLife), result);
+                    synchronized (lock) {
+                        cacheData.put(new PairedKey(myMethod, cacheTimeLife), result);
+                    }
                     Utils.isValueFromCache = true;
                 }
             } else {
                 // Было изменение состояния объекта - вызываем сам метод
                 result = myMethod.invoke(obj, args);
-                cacheData.put(new PairedKey(myMethod, cacheTimeLife), result);
+                synchronized (lock) {
+                    cacheData.put(new PairedKey(myMethod, cacheTimeLife), result);
+                }
                 Utils.isValueFromCache = true;
             }
             return result;

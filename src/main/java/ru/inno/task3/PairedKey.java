@@ -5,18 +5,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 class PairedKey {
-    private Method method;
+    private final Method method;
     private long timeLive;
-
-    // Конструктор
-    public PairedKey(Method method) {
-        this.method = method;
-        this.timeLive = 0;
-    }
 
     public PairedKey(Method method, long timeout) {
         this.method = method;
         this.timeLive = System.currentTimeMillis() + timeout;
+//        this.timeLive = System.nanoTime() + timeout;
     }
 
     public Method getMethod() {
@@ -32,7 +27,7 @@ class PairedKey {
     }
 
     public boolean isLive(long currentTimeMillis) {
-//        System.out.println("isLife="+(currentTimeMillis <= this.timeLife));
+        if(this.timeLive == 0) return true;
         return currentTimeMillis <= this.timeLive;
     }
 
@@ -52,5 +47,4 @@ class PairedKey {
     public String toString() {
         return "{"+this.method+", "+getStrTime(this.timeLive)+"}";
     }
-
 }
