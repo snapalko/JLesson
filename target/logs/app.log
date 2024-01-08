@@ -1,0 +1,23 @@
+2024-01-08 10:49:42 INFO  MainApp:23 - Запрос логина и пароля для подключения к базе данных
+2024-01-08 10:49:42 INFO  LoggingAspect:21 - Начало выполнения метода MainService.setCredential с параметрами [ru.inno.task4.services.CredentialForDb@241a0c3a]
+2024-01-08 10:49:44 INFO  CredentialForDb:62 - Подключение к PostgreSQL... - Ok
+2024-01-08 10:49:44 INFO  LoggingAspect:34 - Метод выполнен за 1975 мсек. и возвратил null
+2024-01-08 10:49:44 INFO  MainApp:26 - Читаем данные из текстовых файлов user*.txt
+2024-01-08 10:49:44 INFO  LoggingAspect:21 - Начало выполнения метода MainService.readDataFromFiles с параметрами []
+2024-01-08 10:49:44 INFO  LoggingAspect:34 - Метод выполнен за 14 мсек. и возвратил ru.inno.task4.model.Model@1a3e5f23, в которой List<User> usersList = [[User{id=null, userName='login_1', fio='Иванов Иван иванович'}, User{id=null, userName='login_2', fio='петров Петр петрович'}, User{id=null, userName='login_3', fio='сидоров иван петрович'}, User{id=null, userName='login_4', fio='james paul mcCartney'}, User{id=null, userName='login_5', fio='john winston lennon'}, User{id=null, userName='login_6', fio='George Harold Harrison'}, User{id=null, userName='login_7', fio='Ringo  Star'}]]
+2024-01-08 10:49:44 INFO  MainApp:29 - Делаем ФИО заглавными буквами
+2024-01-08 10:49:44 INFO  MainApp:32 - Проверяем дату входа
+2024-01-08 10:49:44 INFO  LoggingAspect:21 - Начало выполнения метода MainService.checkDateOper с параметрами [ru.inno.task4.model.Model@1a3e5f23, в которой List<User> usersList = [[User{id=null, userName='login_1', fio='Иванов Иван Иванович'}, User{id=null, userName='login_2', fio='Петров Петр Петрович'}, User{id=null, userName='login_3', fio='Сидоров Иван Петрович'}, User{id=null, userName='login_4', fio='James Paul McCartney'}, User{id=null, userName='login_5', fio='John Winston Lennon'}, User{id=null, userName='login_6', fio='George Harold Harrison'}, User{id=null, userName='login_7', fio='Ringo  Star'}]]]
+2024-01-08 10:49:44 ERROR CheckDateOperation:28 - У user-a Иванов Иван Иванович дата указана не правильно! ()
+2024-01-08 10:49:44 ERROR CheckDateOperation:28 - У user-a Петров Петр Петрович дата указана не правильно! (19/13/2023)
+2024-01-08 10:49:44 INFO  LoggingAspect:34 - Метод выполнен за 9 мсек. и возвратил null
+2024-01-08 10:49:44 INFO  MainApp:35 - Проверяем значения поля 'тип приложения'
+2024-01-08 10:49:44 INFO  MainApp:38 - Создаем пользователей в базе данных
+2024-01-08 10:49:44 INFO  LoggingAspect:21 - Начало выполнения метода MainService.addUsersAndLogins с параметрами [ru.inno.task4.model.Model@1a3e5f23, в которой List<User> usersList = [[User{id=null, userName='login_3', fio='Сидоров Иван Петрович'}, User{id=null, userName='login_4', fio='James Paul McCartney'}, User{id=null, userName='login_5', fio='John Winston Lennon'}, User{id=null, userName='login_6', fio='George Harold Harrison'}, User{id=null, userName='login_7', fio='Ringo  Star'}]]]
+2024-01-08 10:49:45 INFO  MainService:57 - Пользователь User{id=98, userName='login_3', fio='Сидоров Иван Петрович'} добавлен в БД
+2024-01-08 10:49:45 INFO  MainService:57 - Пользователь User{id=99, userName='login_4', fio='James Paul McCartney'} добавлен в БД
+2024-01-08 10:49:46 ERROR UserServiceImpl:36 - мой Exception! Транзакция с добавлением login_5 должна откатиться
+2024-01-08 10:49:46 ERROR MainService:59 - Ошибка при добавлении пользователя User{id=100, userName='login_5', fio='John Winston Lennon'} в БД
+2024-01-08 10:49:46 INFO  MainService:57 - Пользователь User{id=101, userName='login_6', fio='George Harold Harrison'} добавлен в БД
+2024-01-08 10:49:47 INFO  MainService:57 - Пользователь User{id=102, userName='login_7', fio='Ringo  Star'} добавлен в БД
+2024-01-08 10:49:47 INFO  LoggingAspect:34 - Метод выполнен за 2674 мсек. и возвратил null

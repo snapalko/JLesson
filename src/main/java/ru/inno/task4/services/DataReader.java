@@ -1,5 +1,6 @@
 package ru.inno.task4.services;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import ru.inno.task4.main.MainApp;
 import ru.inno.task4.model.Model;
@@ -16,6 +17,7 @@ import java.util.Scanner;
 import java.util.function.Supplier;
 
 @Component
+@Log4j2
 public class DataReader implements Supplier<Model> {
     private final String pathName = MainApp.pathName;
 
@@ -26,6 +28,7 @@ public class DataReader implements Supplier<Model> {
         try {
             readFiles(model);
         } catch (NoSuchFileException e) {
+            log.error(e.getMessage());
             throw new RuntimeException(e);
         }
 
@@ -36,20 +39,24 @@ public class DataReader implements Supplier<Model> {
 
     private void readFiles(Model model) throws NoSuchFileException {
         File dir = new File(this.pathName);
-        if (!dir.exists())
+        if (!dir.exists()) {
+            log.error("Не найден путь, где находятся файлы!");
             throw new NoSuchFileException("Не найден путь, где находятся файлы!");
+        }
 
         if (dir.isDirectory()) {
             for (File item : Objects.requireNonNull(dir.listFiles())) {
                 if (!item.isDirectory()) {
-//                    System.out.println(item.getName());
+                    log.debug(item.getName());
                     if (item.getName().contains("user")) {
                         model.getStringList().addAll(readFile(item));
                     }
                 }
             }
-            if (model.getStringList().isEmpty())
+            if (model.getStringList().isEmpty()) {
+                log.error("В указанной папке нет файлов для чтения!");
                 throw new NoSuchFileException("В указанной папке нет файлов для чтения!");
+            }
         }
     }
 
@@ -61,6 +68,7 @@ public class DataReader implements Supplier<Model> {
                     list.add(scan.nextLine());
                 }
             } catch (IOException e) {
+                log.error("Ошибка чтения файла {}", file.getName());
                 throw new RuntimeException("Ошибка чтения файла " + file.getName());
             }
         }

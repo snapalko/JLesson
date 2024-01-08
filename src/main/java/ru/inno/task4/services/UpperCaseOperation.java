@@ -1,17 +1,18 @@
 package ru.inno.task4.services;
 
+import ru.inno.task4.model.Model;
 import ru.inno.task4.model.User;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.UnaryOperator;
+import java.util.function.Consumer;
 
-public class UpperCaseOperation implements UnaryOperator<List<User>> {
+public class UpperCaseOperation implements Consumer<Model> {
     @Override
-    public List<User> apply(List<User> list) {
-        List<User> outList = new ArrayList<>();
+    public void accept(Model model) {
+        List<User> userList = new ArrayList<>();
 
-        for (User user : list) {
+        for (User user : model.getUsersList()) {
             StringBuilder sb = new StringBuilder();
             StringBuilder sbFio = new StringBuilder();
 
@@ -39,8 +40,8 @@ public class UpperCaseOperation implements UnaryOperator<List<User>> {
             sbFio.append(user.getMidlName());
 
             user.setFio(sbFio.toString());
-            outList.add(user);
+            userList.add(user);
         }
-        return outList;
+        model.setUsersList(userList);
     }
 }

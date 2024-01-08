@@ -1,22 +1,22 @@
 package ru.inno.task4.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+@Getter
 public class Model {
-    private final List<String> stringList = new ArrayList<>();
+    @Setter
+    private List<String> stringList = new ArrayList<>();
 
-    public List<String> getStringList() {
-        return stringList;
-    }
-
+    @Setter
     private List<User> usersList = new ArrayList<>();
 
-    public List<User> getUsersList() {
-        return usersList;
-    }
-
-    public void setUsersList(List<User> usersList) {
-        this.usersList = usersList;
+    @Override
+    public String toString() {
+        return String.format("%s, в которой List<User> usersList = %s", super.toString(), Collections.singletonList(usersList));
     }
 }

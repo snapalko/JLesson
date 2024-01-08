@@ -1,21 +1,22 @@
 package ru.inno.task4.services;
 
+import ru.inno.task4.model.Model;
 import ru.inno.task4.model.User;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.UnaryOperator;
+import java.util.function.Consumer;
 
-public class CheckTypeAppOperation implements UnaryOperator<List<User>> {
+public class CheckTypeAppOperation implements Consumer<Model> {
     @Override
-    public List<User> apply(List<User> list) {
-        List<User> outList = new ArrayList<>();
+    public void accept(Model model) {
+        List<User> userList = new ArrayList<>();
 
-        for (User u : list) {
+        for (User u : model.getUsersList()) {
             if (!u.getApplication().equals("web") && !u.getApplication().equals("mobile"))
                 u.setApplication("other:" + u.getApplication());
-            outList.add(u);
+            userList.add(u);
         }
-        return outList;
+        model.setUsersList(userList);
     }
 }
